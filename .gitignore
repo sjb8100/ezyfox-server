@@ -1,16 +1,10 @@
-# IntelliJ
+.settings
+target
+.vscode
+.project
+.classpath
+.vertx
+*.log
+pom.xml.versionsBackup
 .idea
 *.iml
-target
-
-# Eclipse
-.metadata
-.settings
-.classpath
-.project
-bin
-tmp
-
-# OS generated files #
-######################
-.DS_Store?

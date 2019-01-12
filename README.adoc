@@ -1,6 +1,6 @@
-= Externalized Configuration - Spring Boot Booster
+= Externalized Configuration - Eclipse Vert.x Booster
 
-IMPORTANT: While you can run and interact with this booster on localhost, you cannot take advantage of using externalized configuration with this booster without using OpenShift. For more details on using this booster with a single-node OpenShift cluster, CI/CD deployments, as well as the rest of the runtime, see the link:http://launcher.fabric8.io/docs/spring-boot-runtime.html[Spring Boot Runtime Guide].
+IMPORTANT: While you can run and interact with this booster on localhost, you cannot take advantage of using externalized configuration with this booster without using OpenShift. For more details on using this booster with a single-node OpenShift cluster, CI/CD deployments, as well as the rest of the runtime, see the link:http://appdev.openshift.io/docs/vertx-runtime.html[Eclipse Vert.x Runtime Guide].
 
 IMPORTANT: This booster requires Java 8 JDK or greater and Maven 3.3.x or greater.
 
@@ -11,11 +11,11 @@ To run this booster on your local host:
 
 [source,bash,options="nowrap",subs="attributes+"]
 ----
-$ git clone git@github.com:sjb8100/ezyfox-server
+$ git clone git@github.com:qodfathr/sentimentmeasurer
 
-$ cd ezyfox-server
+$ cd sentimentmeasurer
 
-$ mvn spring-boot:run
+$ mvn compile vertx:run
 ----
 
 == Interacting with the Booster Locally
@@ -31,7 +31,7 @@ $ curl http://localhost:8080/api/greeting?name=Sarah
 ----
 
 == Running the Booster on a Single-node OpenShift Cluster
-If you have a single-node OpenShift cluster, such as Minishift or Red Hat Container Development Kit, link:http://launcher.fabric8.io/docs/minishift-installation.html[installed and running], you can also deploy your booster there. A single-node OpenShift cluster provides you with access to a cloud environment that is similar to a production environment.
+If you have a single-node OpenShift cluster, such as Minishift or Red Hat Container Development Kit, link:http://appdev.openshift.io/docs/minishift-installation.html[installed and running], you can also deploy your booster there. A single-node OpenShift cluster provides you with access to a cloud environment that is similar to a production environment.
 
 To deploy your booster to a running single-node OpenShift cluster:
 
@@ -48,11 +48,11 @@ $ oc new-project MY_PROJECT_NAME
 
 . Navigate to the root directory of your booster.
 
-. Deploy your ConfigMap configuration using `application.yml`.
+. Deploy your ConfigMap configuration using `app-config.yml`.
 +
 [source,bash,options="nowrap",subs="attributes+"]
 ----
-$ oc create configmap app-config --from-file=application.yml
+$ oc create configmap app-config --from-file=app-config.yml
 ----
 
 . Deploy your booster.
@@ -69,23 +69,23 @@ To interact with your booster while it's running on a Single-node OpenShift Clus
 
 [source,bash,options="nowrap",subs="attributes+"]
 ----
-$ oc get route ${value-name-app} -o jsonpath={$.spec.host}
+$ oc get route booster-configmap-vertx -o jsonpath={$.spec.host}
 
-${value-name-app}-MY_PROJECT_NAME.LOCAL_OPENSHIFT_HOSTNAME
+booster-configmap-vertx-MY_PROJECT_NAME.LOCAL_OPENSHIFT_HOSTNAME
 ----
 
 You can use the form at your application's url or you can use the `curl` command:
 
 [source,bash,options="nowrap",subs="attributes+"]
 ----
-$ curl http://${value-name-app}-MY_PROJECT_NAME.LOCAL_OPENSHIFT_HOSTNAME/api/greeting
+$ curl http://booster-configmap-vertx-MY_PROJECT_NAME.LOCAL_OPENSHIFT_HOSTNAME/api/greeting
 {"content":"Hello World from a ConfigMap!"}
 
-$ curl http://${value-name-app}-MY_PROJECT_NAME.LOCAL_OPENSHIFT_HOSTNAME/api/greeting?name=Sarah
+$ curl http://booster-configmap-vertx-MY_PROJECT_NAME.LOCAL_OPENSHIFT_HOSTNAME/api/greeting?name=Sarah
 {"content":"Hello Sarah from a ConfigMap!"}
 ----
 
 == More Information
-You can learn more about this booster and the Spring Boot runtime in the link:http://launcher.fabric8.io/docs/spring-boot-runtime.html[Spring Boot Runtime Guide].
+You can learn more about this booster and the Eclipse Vert.x runtime in the link:http://appdev.openshift.io/docs/vertx-runtime.html[Eclipse Vert.x Runtime Guide].
 
 NOTE: Run the set of integration tests included with this booster using `mvn clean verify -Popenshift,openshift-it`.

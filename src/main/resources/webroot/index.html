@@ -1,0 +1,147 @@
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <title>Sentiment Measurer</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="styles/styles.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div>
+        <h1>Sentiment Measurer</h1>
+        <p class="lead">
+        </p>
+
+        <form class="form-inline">
+            <div class="form-group">
+                <label for="name">Topic</label>
+                <input type="text" class="form-control" id="topic" placeholder="openshiftio">
+            </div>
+            <button id="measure" type="submit" class="btn btn-success">Measure</button>
+        </form>
+
+        <h3>Currently Measuring:</h3>
+        <pre><code id="greeting-result"></code></pre>
+
+
+        <hr style="border-top: 1px solid #ccc"/>
+
+    </div>
+</div>
+
+<div id="tweet">
+</div>
+
+<div>
+    <table id="tweettable" style="width:50%" align="right">
+        <col width="*">
+        <col width="50px">
+        <thead>
+            <tr>
+                <th>Tweet</th>
+                <th>Sentiment</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<!--
+<div id="wrapper" align="left">
+    <svg id="meter">
+        <circle id="low" r="150" cx="50%" cy="50%" stroke="red" stroke-width="60" stroke-dasharray="471, 943" fill="none"></circle>
+        <circle id="medlow" r="150" cx="50%" cy="50%" stroke="firebrick" stroke-width="60" stroke-dasharray="400, 943" fill="none"></circle>
+        <circle id="avg" r="150" cx="50%" cy="50%" stroke="blue" stroke-width="60" stroke-dasharray="259, 943" fill="none"></circle>
+        <circle id="medhigh" r="150" cx="50%" cy="50%" stroke="green" stroke-width="60" stroke-dasharray="188, 943" fill="none"></circle>
+        <circle id="high" r="150" cx="50%" cy="50%" stroke="lime" stroke-width="60" stroke-dasharray="85, 943" fill="none"></circle>
+    </svg>
+    <img id="meter_needle" src="images/meter-arrow.svg">
+</div>
+-->
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="js/vertx-eventbus.js"></script>
+
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $("#measure").click(function(e) {
+            var t = $("#topic").val() || "openshiftio";
+            $.getJSON("/api/topic?topic=" + t, function(res) {
+                //$("#greeting-result").html(JSON.stringify(res));
+                $("#greeting-result").html(t)
+                scores = [0.5];
+            })
+                .fail(function(jqxhr, textStatus, error) {
+                    //$("#greeting-result").html("Unable to read the configuration");
+                });
+            e.preventDefault();
+        });
+    });
+    
+
+var scores = [0.5];
+const movingAverageSize = 31;
+const numberOfTweetsToShow = 10;
+
+function getSum(total, num) {
+    return total + num;
+}
+
+const receiveEvents = function() {
+    console.log('yup');
+    var eb = new EventBus('/eventbus');
+    eb.onopen = function() {
+        console.log('registering');
+        eb.registerHandler('twitter-data-address', function(error, message) {
+            var color = "blue";
+            var sentimentChar = "\u{1f610}"; // 😐
+            switch(message.body.sentiment) {
+                case "positive":
+                    sentimentChar = "\u{1f601}"; // 😊
+                    color = "green";
+                    break;
+                case "neutral":
+                    sentimentChar = "\u{1f610}"; // 😐
+                    color = "blue";
+                    break;
+                case "negative":
+                    sentimentChar = "\u{1f623}"; // 😪
+                    color = "red";
+                    break;
+            }
+            //$('<tr><td>'+message.body.tweet+'</td><td>'+message.body.sentiment+'</td></tr>').prependTo('#tweettable > tbody')
+            $('<tr><td style="height:40px">'+message.body.tweet+'</td><td style="height:40px">'
+                +'<svg style="width:30px;height:30px"><circle r="10" cx="50%" cy="50%" stroke="'+color+'" stroke-width="4" fill="none"></circle></svg>'
+                +sentimentChar
+                +'</td></tr>').prependTo('#tweettable > tbody');
+            var length = JSON.stringify(message.body).length;
+            scores.unshift(message.body.sentimentScore);
+            if (scores.length == movingAverageSize) scores.pop();
+            var table = document.getElementById("tweettable");
+            var numRows = table.rows.length;
+            if (numRows == numberOfTweetsToShow+1) table.deleteRow(numRows-1);
+
+            //meter_needle.style.transition = 'transform 0.1s linear';
+            meter_needle.style.transform = 'rotate(' + (270 + (((scores.reduce(getSum) / scores.length) * 100 * 180) / 100)) + 'deg) translateX(-50%) translateY(20px)';
+        });
+        console.log('registered');
+    }
+}
+receiveEvents();
+</script>
+
+</body>
+
+</html>
